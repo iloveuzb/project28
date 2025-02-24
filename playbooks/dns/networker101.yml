@@ -1,0 +1,36 @@
+---
+- name: Configure DNS Client 1
+  hosts: dns2
+  become: true
+
+  tasks:
+    - name: Install required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - bind-utils
+        - ntp
+
+    - name: Configure resolv.conf
+      template:
+        src: resolv.conf.j2
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure SELinux is permissive
+      selinux:
+        policy: targeted
+        state: permissive
+
+    - name: Set SELinux state to permissive in the current session
+      command: setenforce 0
+      ignore_errors: yes
+
+    - name: Restart network services
+      service:
+        name: NetworkManager
+        state: restarted
+      ignore_errors: yes

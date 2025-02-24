@@ -1,0 +1,34 @@
+---
+- name: Install and configure chrony
+  hosts: ntp_primary
+  become: yes
+
+  tasks:
+    - name: Install chrony package
+      dnf:
+        name: chrony
+        state: present
+
+    - name: Configure chrony
+      template:
+        src: chrony_master.conf.j2
+        dest: /etc/chrony.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Enable and start chrony
+      systemd:
+        name: chronyd
+        enabled: yes
+        state: started
+
+    - name: Disable SELinux
+      selinux:
+        policy: targeted
+        state: disabled
+
+    - name: Set SELinux state to permissive if it is enabled
+      command: setenforce 0
+      when: ansible_selinux.status == 'enabled'
+      ignore_errors: yes

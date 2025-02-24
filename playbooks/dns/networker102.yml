@@ -1,0 +1,48 @@
+---
+- name: Configure DNS Client 2
+  hosts: dns3
+  become: true
+
+  tasks:
+    - name: Install required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - bind-utils
+        - ntp
+
+    - name: Configure resolv.conf
+      template:
+        src: resolv.conf.j2
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure SELinux is permissive
+      selinux:
+        policy: targeted
+        state: permissive
+
+    - name: Set SELinux state to permissive in the current session
+      command: setenforce 0
+      ignore_errors: yes
+
+    - name: Add DNS client firewall rules
+      ansible.builtin.command: firewall-cmd --add-service=dns --permanent
+      async: 600
+      poll: 0
+      ignore_errors: yes
+
+    - name: Reload firewalld
+      ansible.builtin.command: firewall-cmd --reload
+      async: 600
+      poll: 0
+      become: yes
+
+    - name: Restart network services
+      service:
+        name: NetworkManager
+        state: restarted
+      ignore_errors: yes

@@ -1,0 +1,58 @@
+$TTL    1D
+@       IN      SOA     prdx-nsprimary.ziyotek1.local. root.prdx-nsprimary.ziyotek1.local. (
+                        2025021180      ; Serial
+                        1D              ; Refresh
+                        1H              ; Retry
+                        1W              ; Expire
+                        3H )            ; minimum
+
+; name servers NS records
+            IN      NS      prdx-nsprimary.ziyotek1.local.
+            IN      NS      prdx-networker101.ziyotek1.local.
+            IN      NS      prdx-networker102.ziyotek1.local.
+
+; name servers A records
+prdx-nsprimary     IN      A       192.168.161.17
+prdx-networker101  IN      A       192.168.161.18
+prdx-networker102  IN      A       192.168.161.19
+
+; servers
+prdx-ntp101         IN      A       192.168.161.71
+prdx-ntp102         IN      A       192.168.161.72
+prdx-dprimary101    IN      A       192.168.161.21
+prdx-dworker101     IN      A       192.168.161.22
+prdx-dworker102     IN      A       192.168.161.23
+prdx-nsprimary      IN      A       192.168.161.17
+prdx-networker101   IN      A       192.168.161.18
+prdx-networker102   IN      A       192.168.161.19
+prdx-webserver101   IN      A       192.168.161.81
+prdx-webserver102   IN      A       192.168.161.82
+prdx-webserver103   IN      A       192.168.161.83
+prdx-haproxy101     IN      A       192.168.161.90
+prdx-nfs101         IN      A       192.168.161.34
+prdx-nfsclient      IN      A       192.168.161.35
+prdx-ftp101         IN      A       192.168.161.36
+prdx-ldap101        IN      A       192.168.161.94
+prdx-nagios101      IN      A       192.168.161.95
+prdx-db101          IN      A       192.168.161.91
+prdx-db102          IN      A       192.168.161.92
+
+
+ntp1    IN      CNAME   prdx-ntp101.ziyotek1.local.
+ntp2    IN      CNAME   prdx-ntp102.ziyotek1.local.
+dns     IN      CNAME   prdx-nsprimary.ziyotek1.local.
+dns2    IN      CNAME   prdx-networker101.ziyotek1.local.
+dns3    IN      CNAME   prdx-networker102.ziyotek1.local.
+web1    IN      CNAME   prdx-webserver101.ziyotek1.local.
+web2    IN      CNAME   prdx-webserver102.ziyotek1.local.
+web3    IN      CNAME   prdx-webserver103.ziyotek1.local.
+load    IN      CNAME   prdx-haproxy101.ziyotek1.local.
+nfs101  IN      CNAME   prdx-nfs101.ziyotek1.local.
+ftp101  IN      CNAME   prdx-ftp101.ziyotek1.local.
+docker1 IN      CNAME   prdx-dprimary101.ziyotek1.local.
+dworker1 IN     CNAME   prdx-dworker101.ziyotek1.local.
+dworker2 IN     CNAME   prdx-dworker102.ziyotek1.local.
+ldap1   IN      CNAME   prdx-ldap101.ziyotek1.local.
+ng101   IN      CNAME   prdx-nagios101.ziyotek1.local.
+db101   IN      CNAME   prdx-db101.ziyotek1.local.
+db102   IN      CNAME   prdx-db102.ziyotek1.local.

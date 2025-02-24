@@ -1,0 +1,81 @@
+---
+- name: Install bind bind-utils ntp
+  hosts: dns
+  become: true
+  tasks:
+    - name: Install required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - bind-utils
+        - bind
+        - ntp
+
+    - name: Start and enable named service
+      systemd:
+        name: named
+        state: started
+        enabled: yes
+
+    - name: Make sure named directory exists
+      file:
+        path: /var/named
+        state: directory
+
+    - name: creating ziyotek1.local forward lookup zone file
+      file:
+        path: /var/named/ziyotek1.flz
+        state: touch
+
+    - name: create 160.168.192.in-addr.erpa reverse lookup zone file
+      file:
+        path: /var/named/ziyotek1.rlz
+        state: touch
+
+    - name: copy named.conf file
+      copy:
+        src: conf_primary.j2
+        dest: /etc/named.conf
+      ignore_errors: yes
+
+    - name: copy named.loopback to ziyotek1.rlz
+      command: cp -p /var/named/named.loopback /var/named/ziyotek1.rlz
+      ignore_errors: yes
+
+    - name: configuration of DNS servers
+      templates:
+        src: resolv.conf.j2
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: disable selinux temporarily
+      selinux:
+        policy: targeted
+        state: disabled
+
+    - name: setting selinux state to permissive in the current session
+      command: setenforce 0
+      ignore_errors: yes
+
+    - name: Add TCP port 53 to firewalld
+      ansible.builtin.command: firewall-cmd --add-port=53/tcp --permanent
+      async: 600
+      poll: 0
+      ignore_errors: yes
+      become: yes
+
+    - name: add UDP port 53 to Firewalld
+      ansible.builtin.command: firewall-cmd --add-port=53/udp --permanent
+      async: 600
+      poll: 0
+      ignore_errors: yes
+      become: yes
+
+    - name: Reload firewalld
+      ansible.builtin.command: firewall-cmd --reload
+      async: 600
+      poll: 0
+      become: yes

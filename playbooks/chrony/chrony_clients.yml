@@ -1,0 +1,66 @@
+---
+- name: Install and configure chrony clients
+  hosts: chrony_clients
+  become: yes
+
+  vars:
+    ntp_servers:
+      - 192.168.161.71
+      - 192.168.161.72
+
+  tasks:
+    - name: Install chrony
+      yum:
+        name: chrony
+        state: latest
+      when: ansible_distribution != 'Rocky Linux' or ansible_distribution_major_version != '9'
+
+    - name: Enable and start chrony service
+      systemd:
+        name: chronyd
+        enable: yes
+        state: started
+
+    - name: Backup existing chrony configuration
+      command: mv /etc/chrony.conf /etc/chrony.conf.bak
+      ignore_errors: yes
+
+    - name: Configure chrony
+      template:
+        src: chrony_clients.conf.j2
+        dest: /etc/chrony.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Wait for chrony to start
+      wait_for:
+        timeout: 30
+        path: /var/run/chronyd.pid
+        state: present
+
+    - name: Ensure chronyd is synchronized
+      command: chronyc tracking
+      register: output
+      until: '"Leap status     : Normal" in output.stdout'
+      retries: 5
+      delay: 10
+
+    - name: Verify NTP server synchronization
+      command: chronyc sources -v
+      register: sources_output
+    - debug:
+        var: sources_output.stdout
+
+    - name: Check if NTP server is in the list of sources
+      assert:
+        that: "'{{ item }}' in sources_output.stdout"
+      with_items: "{{ ntp_servers }}"
+      fail_msg: "NTP server {{ item }} is not listed in Chrony sources"
+      success_msg: "NTP server {{ item }} is correctly listed in Chrony sources"
+
+    - name: Display Chrony tracking information
+      command: chronyc tracking
+      register: tracking_output
+    - debug:
+        var: tracking_output.stdout
